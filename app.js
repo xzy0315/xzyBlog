@@ -12,6 +12,10 @@ var bodyParser = require('body-parser');
 var index = require('./routes/index');
 var users = require('./routes/users');
 var articles = require('./routes/articles');
+var session = require('express-session');
+var MongoStore = require('connect-mongo/es5')(session);
+
+var flash = require('connect-flash');
 
 var app = express();
 
@@ -21,6 +25,17 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'html');
 //设置一下对于html格式的文件，渲染的时候委托ejs的渲染
 app.engine('html',require('ejs').renderFile);
+//启动是连接数据库
+var mongoose = require('mongoose');
+var db = mongoose.connect('mongodb://127.0.0.1:27017/xzyMongo');
+app.use(session({
+    secret:'xzyBlog',
+    resave:false,
+    saveUninitialized:true,
+    store: new MongoStore({ mongooseConnection: mongoose.connection })
+}));
+
+app.use(flash());//依赖session
 
 // uncomment after placing your favicon in /public
 //需要把收藏夹的图标文件放在public下面。就可以去下下面的注释
@@ -32,6 +47,14 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 //静态文件服务中间件
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(function(req,res,next){
+   //res.locals 才是真正的渲染模板对象
+   res.locals.user = req.session.user;
+   res.locals.success = req.flash('success').toString();
+    res.locals.error = req.flash('error').toString();
+   next();
+});
+
 
 app.use('/', index);
 app.use('/users', users);
