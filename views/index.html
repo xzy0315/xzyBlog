@@ -1,2 +1,23 @@
 <%- include include/header.html %>
+<div class="container">
+    <ul class="media-list">
+        <%
+           for(var i=0;i<articles.length;i++){
+            var article = articles[i];
+        %>
+        <li class="media">
+            <div class="media-left">
+                <a href="#">
+                    <img class="media-object" src="<%=article.user.avatar%>" alt="<%=article.user.username%>">
+                </a>
+            </div>
+            <div class="media-body">
+                <h4 class="media-heading"><%=article.title%></h4>
+                <p><%-article.content%></p>
+                <img src="<%=article.img%>" style="width: 100px;height: 100px;">
+            </div>
+        </li>
+        <%}%>
+    </ul>
+</div>
 <%- include include/footer.html %>

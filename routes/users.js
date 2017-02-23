@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var userModel = require('../model/user')
 var validate = require('../middle/index.js');
+var crypto = require('crypto');
 
 router.get('/reg',validate.checkNotLogin,function(req,res){
    res.render('user/reg');
@@ -10,6 +11,9 @@ router.get('/reg',validate.checkNotLogin,function(req,res){
 router.post('/reg',validate.checkNotLogin,function(req,res){
 
     var user = req.body;
+    user.password = md5(user.password);
+    console.log(user);
+    user.avatar = 'https://secure.gravatar.com/avatar/'+md5(user.email);
     userModel.create(user,function(err,doc){
         if(err){
             req.flash('error',err);
@@ -29,7 +33,21 @@ router.get('/login',validate.checkNotLogin,function(req,res){
 });
 
 router.post('/login',validate.checkNotLogin,function(req,res){
-    res.send('login');
+
+    var user = req.body;
+    user.password = md5(user.password);
+    console.log(user);
+    userModel.findOne(user,function(error,user){
+        if(error || user == null){
+            req.flash('error','登陆出错');
+            res.redirect('back');
+        }else{
+            req.session.user = user;//存到user属性
+            req.flash('success','登陆成功');
+            res.redirect('/');
+        }
+    });
+
 });
 
 router.get('/out',validate.checkLogin,function(req,res){
@@ -38,3 +56,10 @@ router.get('/out',validate.checkLogin,function(req,res){
 });
 
 module.exports = router;
+
+
+function md5(str){
+    return crypto.createHash('md5')
+        .update(str)
+        .digest('hex');
+}
